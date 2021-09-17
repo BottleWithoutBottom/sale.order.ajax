@@ -1,0 +1,16 @@
+{
+  "authors": [
+    {
+      "name": "Leonid",
+      "email": "shredder139@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Letsrock\\": "./letsrock"
+    }
+  },
+  "require": {
+    "letsrock/view": "1.*"
+  }
+}
