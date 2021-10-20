@@ -4,6 +4,8 @@ use Bitrock\LetsEnv;
 use Letsrock\Actions\PersonAction;
 use Letsrock\Actions\BasketItemsAction;
 use Letsrock\Actions\CheckoutAction;
+use Letsrock\Actions\DeliveryAction;
+use Letsrock\Actions\PaySystemAction;
 use Bitrix\Main;
 use Bitrix\Main\Config\Option;
 use Bitrix\Main\Loader;
@@ -15,7 +17,30 @@ $letsEnv->parseConfiguration(__DIR__ . '/');
 
 class LetsrockSaleOrderAjax extends SaleOrderAjax
 {
-    public function executeComponent()
+    protected function refreshOrderAjaxAction()
+    {
+        global $USER;
+
+        $error = false;
+        $this->request->set($this->request->get('order'));
+        if ($this->checkSession)
+        {
+            $this->order = $this->createOrder($USER->GetID() ? $USER->GetID() : CSaleUser::GetAnonymousUserID());
+            $this->prepareResultArray();
+            self::scaleImages($this->arResult['JS_DATA'], $this->arParams['SERVICES_IMAGES_SCALING']);
+        }
+        else
+            $error = Loc::getMessage('SESSID_ERROR');
+
+        foreach (GetModuleEvents("sale", 'OnSaleComponentOrderShowAjaxAnswer', true) as $arEvent)
+            ExecuteModuleEventEx($arEvent, [&$result]);
+
+
+
+        $this->executeComponent($result);
+    }
+
+    public function executeComponent($dopResultEvents = false)
     {
         global $APPLICATION;
 
@@ -24,6 +49,8 @@ class LetsrockSaleOrderAjax extends SaleOrderAjax
         $this->checkSession = $this->arParams["DELIVERY_NO_SESSION"] == "N" || check_bitrix_sessid();
         $this->isRequestViaAjax = $this->request->isPost() && $this->request->get('via_ajax') == 'Y';
         $isAjaxRequest = $this->request["is_ajax_post"] == "Y";
+        $this->arResult["DOP_RESULT_EVENTS"] = $dopResultEvents;
+
         if ($isAjaxRequest)
             $APPLICATION->RestartBuffer();
 
@@ -46,7 +73,11 @@ class LetsrockSaleOrderAjax extends SaleOrderAjax
         $basketAction = new BasketItemsAction();
         $this->arResult['BASKET_ITEMS_HTML'] = $basketAction->getHtml($this->arResult['BASKET_ITEMS']);
         $personAction = new PersonAction();
-        $this->arResult['PERSON_HTML'] = $personAction->getHtml($this->arResult['ORDER_PROP']['USER_PROPS_Y']);
+        $this->arResult['PERSON_HTML'] = $personAction->getHtml($this->arResult);
+        $deliveryAction = new DeliveryAction();
+        $this->arResult['DELIVERY_HTML'] = $deliveryAction->getHtml($this->arResult['DELIVERY']);
+        $paySystemAction = new PaySystemAction();
+        $this->arResult['PAY_SYSTEM_HTML'] = $paySystemAction->getHtml($this->arResult['PAY_SYSTEM']);
 
         $checkoutData = [
             'BASKET_ITEMS' => $this->arResult['BASKET_ITEMS'],

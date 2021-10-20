@@ -5,21 +5,24 @@ use Letsrock\View;
 
 class PersonAction extends AbstractAction
 {
+    protected $personBlock = [];
     public function modify($data)
     {
         $person = [];
         $person['FIO'] = $this->searchPropertyByKey($data, 'FIO');
         $person['EMAIL'] = $this->searchPropertyByKey($data, 'CODE');
         $person['PHONE'] = $this->searchPropertyByKey($data, 'PHONE');
-
-        $this->data = $person;
+        $personBlock = array_chunk($data['ORDER_PROP']['USER_PROPS_Y'], 2);
+        $this->data = $data;
+        $this->personBlock = $personBlock;
     }
 
     public function getHtml($data)
     {
         $this->modify($data);
         return $this->view->render('person.php', [
-            'person' => $this->data
+            'personBlock' => $this->personBlock,
+            'arResult' => $this->data
         ]);
     }
 

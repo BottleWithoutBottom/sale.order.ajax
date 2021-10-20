@@ -44,7 +44,7 @@
                 class="order__result-total-value"><?= $data['ORDER_PRICE'] ?> руб.</span></div>
         <div class="order__result-submit active" data-target="order.resultSubmit"><a
                 class="button button--order" href="javascript:void(0)"
-                data-action="click-&gt;order#submit">Оформить заказ</a>
+                data-action="click-&gt;order#submit" data-save-button="true">Оформить заказ</a>
             <div class="order__result-policy">Нажимая на кнопку «Оформить заказ», я даю свое
                 согласие на обработку персональных данных, с договором публичной оферты и
                 политикой конфиденциальности ознакомлен и принимаю
